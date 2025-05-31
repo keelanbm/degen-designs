@@ -1,25 +1,24 @@
 import Link from 'next/link'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { Button } from '@/components/ui/button'
 import { ArrowRight } from 'lucide-react'
+import { Prisma } from '@prisma/client'
 
-interface DappWithCount {
-  id: string
-  name: string
-  slug: string
-  description: string | null
-  category: string | null
-  createdAt: Date
-  _count: {
-    images: number
+// Use Prisma's generated type instead of manual interface
+type DappWithCount = Prisma.DappGetPayload<{
+  include: {
+    _count: {
+      select: { images: true }
+    }
   }
-}
+}>
 
 export default async function HomePage() {
   let dapps: DappWithCount[] = []
   
   try {
-    dapps = await db.dapp.findMany({
+    console.log('Attempting to fetch dapps...')
+    dapps = await prisma.dapp.findMany({
       include: {
         _count: {
           select: { images: true }
@@ -28,6 +27,7 @@ export default async function HomePage() {
       orderBy: { createdAt: 'desc' },
       take: 12
     })
+    console.log('Fetched dapps:', dapps.length)
   } catch (error) {
     console.error('Database error:', error)
   }
