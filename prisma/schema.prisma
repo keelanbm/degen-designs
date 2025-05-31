@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String   @id @default(cuid())
+  clerkId          String   @unique
+  email            String   @unique
+  stripeCustomerId String?
+  isPremium        Boolean  @default(false)
+  viewedImages     Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Dapp {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  logoUrl     String?
+  website     String?
+  category    String?
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  images Image[]
+  flows  Flow[]
+
+  @@map("dapps")
+}
+
+model Image {
+  id          String   @id @default(cuid())
+  url         String
+  title       String?
+  description String?
+  category    String? // "onboarding", "trading", "settings", etc.
+  version     String?  // "v1", "v2", "2024-05", "pre-update", etc.
+  capturedAt  DateTime? // When the screenshot was taken
+  isPremium   Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  dappId String
+  dapp   Dapp   @relation(fields: [dappId], references: [id], onDelete: Cascade)
+
+  flowSteps FlowStep[]
+
+  @@map("images")
+}
+
+model Flow {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  dappId String
+  dapp   Dapp   @relation(fields: [dappId], references: [id], onDelete: Cascade)
+
+  steps FlowStep[]
+
+  @@map("flows")
+}
+
+model FlowStep {
+  id    String @id @default(cuid())
+  order Int
+
+  flowId  String
+  flow    Flow   @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  imageId String
+  image   Image  @relation(fields: [imageId], references: [id], onDelete: Cascade)
+
+  @@unique([flowId, order])
+  @@map("flow_steps")
+}
