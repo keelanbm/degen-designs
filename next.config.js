@@ -12,6 +12,9 @@ const nextConfig = {
     env: {
       CUSTOM_KEY: process.env.CUSTOM_KEY,
     },
+    experimental: {
+      serverComponentsExternalPackages: ['@prisma/client', '@prisma/engines'],
+    },
   }
   
   module.exports = nextConfig
