@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { Button } from '@/components/ui/button'
 import { ExternalLink, Globe } from 'lucide-react'
 
@@ -34,7 +34,7 @@ export default async function DappPage({ params }: DappPageProps) {
   let dapp: DappData | null = null
   
   try {
-    dapp = await db.dapp.findUnique({
+    dapp = await prisma.dapp.findUnique({
       where: { slug },
       include: {
         images: {
@@ -140,6 +140,7 @@ function SimpleImageGrid({ images }: { images: ImageData[] }) {
               alt={image.title || 'Dapp Screenshot'}
               fill
               className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
             />
             {/* Overlay with image info */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
