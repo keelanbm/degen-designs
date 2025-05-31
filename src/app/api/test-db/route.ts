@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
+    // Fresh connection for each request
+    await prisma.$connect()
+    
     const dappCount = await prisma.dapp.count()
     const imageCount = await prisma.image.count()
     
@@ -15,6 +18,9 @@ export async function GET() {
       }
     })
     
+    // Explicitly disconnect after use
+    await prisma.$disconnect()
+    
     return NextResponse.json({ 
       success: true, 
       dappCount, 
@@ -23,6 +29,7 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Database error:', error)
+    await prisma.$disconnect()
     return NextResponse.json({ 
       error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
