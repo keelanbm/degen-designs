@@ -36,7 +36,7 @@ export function Paywall({ open, onOpenChange }: PaywallProps) {
           </div>
           <DialogTitle className="text-xl">Unlock Premium Content</DialogTitle>
           <DialogDescription>
-            You've reached your free limit of 3 images. Upgrade for unlimited access to all premium dapp designs.
+            You have reached your free limit of 3 images. Upgrade for unlimited access to all premium dapp designs.
           </DialogDescription>
         </DialogHeader>
 
