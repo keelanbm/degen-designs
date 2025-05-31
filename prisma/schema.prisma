@@ -73,7 +73,7 @@ model Flow {
 
   @@map("flows")
 }
-
+ 
 model FlowStep {
   id    String @id @default(cuid())
   order Int
