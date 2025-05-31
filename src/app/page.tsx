@@ -1,10 +1,9 @@
 import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'  // Import prisma, not createPrismaClient
 import { Button } from '@/components/ui/button'
 import { ArrowRight } from 'lucide-react'
 import { Prisma } from '@prisma/client'
 
-// Use Prisma's generated type instead of manual interface
 type DappWithCount = Prisma.DappGetPayload<{
   include: {
     _count: {
@@ -57,7 +56,7 @@ export default async function HomePage() {
 
       {/* Dapps Section */}
       <section className="py-16 border-t">
-        <h2 className="text-3xl font-bold mb-8">Recent Dapps</h2>
+        <h2 className="text-3xl font-bold mb-8">Recent Dapps ({dapps.length})</h2>
         
         {dapps.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
