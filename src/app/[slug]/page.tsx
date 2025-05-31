@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button'
 import { ExternalLink, Globe } from 'lucide-react'
 
 interface DappPageProps {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
 interface ImageData {
@@ -30,11 +30,12 @@ interface DappData {
 }
 
 export default async function DappPage({ params }: DappPageProps) {
+  const { slug } = await params
   let dapp: DappData | null = null
   
   try {
     dapp = await db.dapp.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
       include: {
         images: {
           orderBy: [{ order: 'asc' }, { createdAt: 'asc' }]
