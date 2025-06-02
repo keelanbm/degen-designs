@@ -94,7 +94,7 @@ export default async function HomePage() {
                 >
                   <h3 className="font-semibold mb-2">{dapp.name}</h3>
                   <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                    {dapp.description || 'Explore this dapp\'s design'}
+                    {dapp.description || 'Explore this dapp&apos;s design'}
                   </p>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>{dapp._count.images} screens</span>
