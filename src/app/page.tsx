@@ -16,23 +16,15 @@ type DappWithCount = Prisma.DappGetPayload<{
   }
 }>
 
-export default async function HomePage() {
-  let dapps: DappWithCount[] = []
-  
+async function getDapps() {
   try {
-    console.log('Database URL check:', {
+    console.log('Environment:', process.env.NODE_ENV)
+    console.log('Database connection check:', {
       hasUrl: !!process.env.DATABASE_URL,
-      hasDirectUrl: !!process.env.DIRECT_URL,
-      urlLength: process.env.DATABASE_URL?.length,
-      directUrlLength: process.env.DIRECT_URL?.length
+      hasDirectUrl: !!process.env.DIRECT_URL
     })
 
-    console.log('Attempting to connect to database...')
-    await prisma.$connect()
-    console.log('Database connected successfully')
-    
-    console.log('Fetching dapps...')
-    dapps = await prisma.dapp.findMany({
+    const dapps = await prisma.dapp.findMany({
       include: {
         _count: {
           select: { images: true }
@@ -41,24 +33,41 @@ export default async function HomePage() {
       orderBy: { createdAt: 'desc' },
       take: 12
     })
-    console.log('Dapps fetched:', {
+
+    console.log('Fetched dapps:', {
       count: dapps.length,
-      dappNames: dapps.map(d => d.name)
+      names: dapps.map(d => d.name)
     })
+
+    return dapps
   } catch (error) {
-    console.error('Database error:', error)
-    if (error instanceof Error) {
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack
-      })
-    }
-  } finally {
-    try {
-      await prisma.$disconnect()
-    } catch (e) {
-      console.error('Error disconnecting from database:', e)
-    }
+    console.error('Failed to fetch dapps:', error)
+    throw new Error('Failed to fetch dapps. Please try again later.')
+  }
+}
+
+export default async function HomePage() {
+  let dapps: DappWithCount[] = []
+  let error: Error | null = null
+  
+  try {
+    dapps = await getDapps()
+  } catch (e) {
+    console.error('Error in HomePage:', e)
+    error = e instanceof Error ? e : new Error('An unexpected error occurred')
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center py-12">
+          <p className="text-red-500 mb-4">Error: {error.message}</p>
+          <p className="text-sm text-muted-foreground">
+            Please try refreshing the page.
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
