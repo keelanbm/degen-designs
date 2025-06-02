@@ -1,9 +1,11 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 import { prisma } from '@/lib/prisma'
 import { Button } from '@/components/ui/button'
 import { ExternalLink, Globe } from 'lucide-react'
+import { ErrorDisplay } from './error-display'
+import { SimpleImageGrid } from '@/components/dapp/image-grid'
+import { cache } from 'react'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -32,7 +34,8 @@ interface DappData {
   images: ImageData[]
 }
 
-async function getDappBySlug(slug: string) {
+// Cache the getDappBySlug function to prevent duplicate fetches
+const getDappBySlug = cache(async (slug: string) => {
   try {
     console.log('Fetching dapp with slug:', slug)
     const dapp = await prisma.dapp.findUnique({
@@ -55,7 +58,7 @@ async function getDappBySlug(slug: string) {
     console.error('Failed to fetch dapp:', error)
     throw new Error('Failed to load dapp data. Please try again later.')
   }
-}
+})
 
 export default async function DappPage({ params }: DappPageProps) {
   let error: Error | null = null
@@ -135,72 +138,8 @@ export default async function DappPage({ params }: DappPageProps) {
   } catch (e) {
     console.error('Error in DappPage:', e)
     error = e instanceof Error ? e : new Error('An unexpected error occurred')
-    
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center py-12">
-          <p className="text-red-500 mb-4">Error: {error.message}</p>
-          <div className="flex justify-center gap-4 mt-6">
-            <Button onClick={() => window.location.reload()}>
-              Try again
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/">Return Home</Link>
-            </Button>
-          </div>
-        </div>
-      </div>
-    )
+    return <ErrorDisplay error={error} />
   }
-}
-
-function SimpleImageGrid({ images }: { images: any[] }) {
-  if (images.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground">No images available.</p>
-      </div>
-    )
-  }
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {images.map((image) => (
-        <div
-          key={image.id}
-          className="group relative overflow-hidden rounded-lg border bg-card hover:shadow-md transition-shadow"
-        >
-          <div className="aspect-[3/4] relative bg-muted">
-            <Image
-              src={image.url}
-              alt={image.title || 'Dapp Screenshot'}
-              fill
-              className="object-cover transition-transform group-hover:scale-105"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-              priority={false}
-              loading="lazy"
-            />
-            {/* Overlay with image info */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <div className="absolute bottom-4 left-4 right-4 text-white">
-                <h3 className="font-medium text-sm mb-1 line-clamp-2">
-                  {image.title || 'Untitled'}
-                </h3>
-                <p className="text-xs opacity-80 line-clamp-1">
-                  {image.category || 'General'}
-                </p>
-                {image.version && (
-                  <p className="text-xs opacity-80 mt-1">
-                    v{image.version}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  )
 }
 
 export async function generateMetadata({ params }: DappPageProps) {
