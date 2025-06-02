@@ -1,5 +1,4 @@
 {
-    "buildCommand": "npx prisma generate && npm run build",
     "functions": {
       "app/**/*.{js,ts}": {
         "maxDuration": 30
