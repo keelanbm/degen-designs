@@ -94,7 +94,7 @@ export default async function HomePage() {
                 >
                   <h3 className="font-semibold mb-2">{dapp.name}</h3>
                   <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                    {dapp.description || 'Explore this dapp&apos;s design'}
+                    {dapp.description || "Explore this dapp's design"}
                   </p>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>{dapp._count.images} screens</span>
@@ -122,7 +122,7 @@ export default async function HomePage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] p-4">
         <h2 className="text-xl font-semibold text-red-600 mb-2">Error loading dapps</h2>
-        <p className="text-gray-600 mb-4">We're having trouble connecting to our database. Please try again in a few moments.</p>
+        <p className="text-gray-600 mb-4">{"We're having trouble connecting to our database. Please try again in a few moments."}</p>
         <button 
           onClick={() => window.location.reload()} 
           className="px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
