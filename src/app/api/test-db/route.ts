@@ -1,5 +1,9 @@
-import { prisma } from '@/lib/prisma'  // Import prisma, not createPrismaClient
+import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+
+// Force dynamic rendering for API routes
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 export async function GET() {
   try {
