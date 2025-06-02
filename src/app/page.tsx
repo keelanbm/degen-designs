@@ -1,8 +1,12 @@
 import Link from 'next/link'
-import { prisma } from '@/lib/prisma'  // Import prisma, not createPrismaClient
+import { prisma } from '@/lib/prisma'
 import { Button } from '@/components/ui/button'
 import { ArrowRight } from 'lucide-react'
 import { Prisma } from '@prisma/client'
+
+// Force dynamic rendering - no static generation
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 type DappWithCount = Prisma.DappGetPayload<{
   include: {
@@ -29,6 +33,7 @@ export default async function HomePage() {
     console.log('Fetched dapps:', dapps.length)
   } catch (error) {
     console.error('Database error:', error)
+    // Don't throw, just return empty array
   }
 
   return (

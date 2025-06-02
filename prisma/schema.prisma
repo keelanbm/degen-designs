@@ -1,13 +1,13 @@
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
+
+// ... rest of your models stay the same
 
 model User {
   id               String   @id @default(cuid())
