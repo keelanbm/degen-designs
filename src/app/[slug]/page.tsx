@@ -5,6 +5,10 @@ import { prisma } from '@/lib/prisma'
 import { Button } from '@/components/ui/button'
 import { ExternalLink, Globe } from 'lucide-react'
 
+// Force dynamic rendering - no static generation
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 interface DappPageProps {
   params: Promise<{
     slug: string
@@ -44,7 +48,7 @@ export default async function DappPage({ params }: DappPageProps) {
     })
   } catch (error) {
     console.error('Database error:', error)
-    notFound()
+    // Don't call notFound() immediately, let it fall through
   }
 
   if (!dapp) {
@@ -163,4 +167,11 @@ function SimpleImageGrid({ images }: { images: ImageData[] }) {
       ))}
     </div>
   )
+}
+
+// Disable static generation for metadata too
+export async function generateMetadata({ params }: DappPageProps) {
+  return {
+    title: 'DappArchive'
+  }
 }

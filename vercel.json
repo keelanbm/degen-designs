@@ -1,14 +1,8 @@
 {
-    "buildCommand": "npx prisma generate && next build",
+    "buildCommand": "npx prisma generate && npm run build",
     "functions": {
       "app/**/*.{js,ts}": {
         "maxDuration": 30
       }
-    },
-    "routes": [
-      {
-        "src": "/api/(.*)",
-        "dest": "/api/$1"
-      }
-    ]
+    }
   }
