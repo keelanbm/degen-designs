@@ -21,7 +21,8 @@ async function getDapps() {
     console.log('Environment:', process.env.NODE_ENV)
     console.log('Database connection check:', {
       hasUrl: !!process.env.DATABASE_URL,
-      hasDirectUrl: !!process.env.DIRECT_URL
+      hasDirectUrl: !!process.env.DIRECT_URL,
+      appUrl: process.env.NEXT_PUBLIC_APP_URL
     })
 
     const dapps = await prisma.dapp.findMany({
@@ -42,6 +43,14 @@ async function getDapps() {
     return dapps
   } catch (error) {
     console.error('Failed to fetch dapps:', error)
+    // Enhanced error logging
+    if (error instanceof Error) {
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      })
+    }
     throw new Error('Failed to fetch dapps. Please try again later.')
   }
 }
