@@ -20,6 +20,11 @@ export default async function HomePage() {
   let dapps: DappWithCount[] = []
   
   try {
+    console.log('Attempting to connect to database...')
+    // Test database connection
+    await prisma.$connect()
+    console.log('Database connected successfully')
+    
     console.log('Attempting to fetch dapps...')
     dapps = await prisma.dapp.findMany({
       include: {
@@ -30,10 +35,19 @@ export default async function HomePage() {
       orderBy: { createdAt: 'desc' },
       take: 12
     })
-    console.log('Fetched dapps:', dapps.length)
+    console.log('Fetched dapps:', JSON.stringify(dapps, null, 2))
   } catch (error) {
     console.error('Database error:', error)
-    // Don't throw, just return empty array
+    if (error instanceof Error) {
+      console.error('Error message:', error.message)
+      console.error('Error stack:', error.stack)
+    }
+  } finally {
+    try {
+      await prisma.$disconnect()
+    } catch (e) {
+      console.error('Error disconnecting from database:', e)
+    }
   }
 
   return (
