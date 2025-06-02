@@ -11,7 +11,8 @@
         "db:studio": "prisma studio",
         "db:generate": "prisma generate",
         "upload-images": "tsx scripts/upload_images.ts",
-        "postinstall": "prisma generate"
+        "postinstall": "prisma generate",
+        "seed": "tsx scripts/seed.ts"
     },
     "dependencies": {
         "@clerk/nextjs": "5.1.6",
