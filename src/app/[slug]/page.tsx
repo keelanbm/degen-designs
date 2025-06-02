@@ -1,12 +1,12 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { prisma, DatabaseError } from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 import { Button } from '@/components/ui/button'
 import { ExternalLink, Globe } from 'lucide-react'
 
-// Replace force-dynamic with ISR configuration
-export const revalidate = 3600 // Revalidate every hour
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 interface DappPageProps {
   params: {
@@ -32,8 +32,9 @@ interface DappData {
   images: ImageData[]
 }
 
-async function getDapp(slug: string): Promise<DappData | null> {
+async function getDappBySlug(slug: string) {
   try {
+    console.log('Fetching dapp with slug:', slug)
     const dapp = await prisma.dapp.findUnique({
       where: { slug },
       include: {
@@ -42,18 +43,25 @@ async function getDapp(slug: string): Promise<DappData | null> {
         }
       }
     })
+
+    console.log('Dapp fetch result:', {
+      found: !!dapp,
+      name: dapp?.name,
+      imageCount: dapp?.images.length
+    })
+
     return dapp
   } catch (error) {
     console.error('Failed to fetch dapp:', error)
-    throw new DatabaseError('Failed to fetch dapp data', error)
+    throw new Error('Failed to load dapp data. Please try again later.')
   }
 }
 
 export default async function DappPage({ params }: DappPageProps) {
-  let dapp: DappData | null = null
+  let error: Error | null = null
   
   try {
-    dapp = await getDapp(params.slug)
+    const dapp = await getDappBySlug(params.slug)
     
     if (!dapp) {
       notFound()
@@ -67,7 +75,7 @@ export default async function DappPage({ params }: DappPageProps) {
       }
       acc[category].push(image)
       return acc
-    }, {} as Record<string, ImageData[]>)
+    }, {} as Record<string, typeof dapp.images>)
 
     const categories = Object.keys(imagesByCategory)
 
@@ -124,15 +132,29 @@ export default async function DappPage({ params }: DappPageProps) {
         </div>
       </div>
     )
-  } catch (error) {
-    if (error instanceof DatabaseError) {
-      throw new Error('Failed to load dapp data. Please try again later.')
-    }
-    throw error
+  } catch (e) {
+    console.error('Error in DappPage:', e)
+    error = e instanceof Error ? e : new Error('An unexpected error occurred')
+    
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center py-12">
+          <p className="text-red-500 mb-4">Error: {error.message}</p>
+          <div className="flex justify-center gap-4 mt-6">
+            <Button onClick={() => window.location.reload()}>
+              Try again
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/">Return Home</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
   }
 }
 
-function SimpleImageGrid({ images }: { images: ImageData[] }) {
+function SimpleImageGrid({ images }: { images: any[] }) {
   if (images.length === 0) {
     return (
       <div className="text-center py-8">
@@ -181,10 +203,9 @@ function SimpleImageGrid({ images }: { images: ImageData[] }) {
   )
 }
 
-// Disable static generation for metadata too
 export async function generateMetadata({ params }: DappPageProps) {
   try {
-    const dapp = await getDapp(params.slug)
+    const dapp = await getDappBySlug(params.slug)
     
     if (!dapp) {
       return {
