@@ -7,19 +7,17 @@ const prismaClientSingleton = () => {
         url: process.env.DATABASE_URL
       }
     },
-    log: ['error', 'warn'],
+    log: ['error', 'warn']
   })
 }
 
-declare global {
-  var prisma: undefined | ReturnType<typeof prismaClientSingleton>
+// Create a new client for each request to avoid prepared statement issues
+export function getPrismaClient() {
+  return prismaClientSingleton()
 }
 
-const prisma = globalThis.prisma ?? prismaClientSingleton()
-
-if (process.env.NODE_ENV !== 'production') globalThis.prisma = prisma
-
-export { prisma }
+// For backwards compatibility and non-API routes
+export const prisma = getPrismaClient()
 
 export class DatabaseError extends Error {
   constructor(message: string, public originalError?: unknown) {

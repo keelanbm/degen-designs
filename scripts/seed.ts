@@ -1,12 +1,20 @@
-import { prisma } from '@/lib/prisma'
+import { getPrismaClient } from '@/lib/prisma'
 
 async function main() {
+  const prisma = getPrismaClient()
+  
   try {
+    // Clean existing data using raw SQL
+    console.log('Cleaning existing data...')
+    await prisma.$executeRaw`TRUNCATE TABLE "flow_steps" CASCADE;`
+    await prisma.$executeRaw`TRUNCATE TABLE "flows" CASCADE;`
+    await prisma.$executeRaw`TRUNCATE TABLE "images" CASCADE;`
+    await prisma.$executeRaw`TRUNCATE TABLE "dapps" CASCADE;`
+    
+    console.log('Creating new data...')
     // Create GMX V2 dapp
-    const gmx = await prisma.dapp.upsert({
-      where: { slug: 'gmx-v2' },
-      update: {},
-      create: {
+    const gmx = await prisma.dapp.create({
+      data: {
         name: 'GMX V2',
         slug: 'gmx-v2',
         description: 'The largest Perp DEX on Arbitrum, trade with up to 100x leverage',
@@ -28,15 +36,54 @@ async function main() {
               category: 'Trading',
               version: 'v2',
               order: 1
+            },
+            {
+              url: 'https://res.cloudinary.com/dgxzqy4kl/image/upload/v1709433600/gmx-dashboard.png',
+              title: 'Dashboard',
+              category: 'Overview',
+              version: 'v2',
+              order: 2
             }
           ]
         }
       }
     })
 
-    console.log('Database seeded:', {
-      dapp: gmx.name,
-      slug: gmx.slug
+    // Create Jupiter dapp
+    const jupiter = await prisma.dapp.create({
+      data: {
+        name: 'Jupiter',
+        slug: 'jupiter',
+        description: 'The key liquidity aggregator for Solana, providing the best swap rates',
+        website: 'https://jup.ag',
+        category: 'DEX',
+        featured: true,
+        images: {
+          create: [
+            {
+              url: 'https://res.cloudinary.com/dgxzqy4kl/image/upload/v1709433600/jupiter-swap.png',
+              title: 'Swap Interface',
+              category: 'Trading',
+              version: 'v6',
+              order: 0
+            },
+            {
+              url: 'https://res.cloudinary.com/dgxzqy4kl/image/upload/v1709433600/jupiter-settings.png',
+              title: 'Settings',
+              category: 'Settings',
+              version: 'v6',
+              order: 1
+            }
+          ]
+        }
+      }
+    })
+
+    console.log('Database seeded successfully:', {
+      dapps: [
+        { name: gmx.name, slug: gmx.slug },
+        { name: jupiter.name, slug: jupiter.slug }
+      ]
     })
 
   } catch (error) {

@@ -1,82 +1,53 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { Prisma } from '@prisma/client'
+import { getPrismaClient } from '@/lib/prisma'
 
 // Force dynamic rendering for API routes
 export const dynamic = 'force-dynamic'
-export const runtime = 'edge'
-export const preferredRegion = 'auto'
-
-type DappWithImages = Prisma.DappGetPayload<{
-  include: {
-    images: {
-      select: {
-        id: true,
-        url: true,
-        title: true
-      }
-    }
-    _count: {
-      select: { images: true }
-    }
-  }
-}>
 
 export async function GET() {
+  const prisma = getPrismaClient()
+  
   try {
-    // Get counts with separate queries to isolate issues
-    let dappCount = 0
-    let imageCount = 0
-    let dapps: DappWithImages[] = []
-
-    try {
-      dappCount = await prisma.dapp.count()
-      console.log('Dapp count:', dappCount)
-    } catch (error) {
-      console.error('Error counting dapps:', error)
-    }
-
-    try {
-      imageCount = await prisma.image.count()
-      console.log('Image count:', imageCount)
-    } catch (error) {
-      console.error('Error counting images:', error)
-    }
-
-    try {
-      dapps = await prisma.dapp.findMany({
-        take: 3,
+    // Test multiple database operations
+    const results = {
+      // Count total dapps
+      totalDapps: await prisma.dapp.count(),
+      
+      // Get first dapp with its images
+      firstDapp: await prisma.dapp.findFirst({
         include: {
           images: {
             select: {
-              id: true,
               url: true,
               title: true
             }
-          },
-          _count: {
-            select: { images: true }
           }
         }
+      }),
+      
+      // Get all unique categories
+      categories: await prisma.dapp.groupBy({
+        by: ['category'],
+        where: {
+          category: {
+            not: null
+          }
+        }
+      }),
+      
+      // Get featured dapps count
+      featuredCount: await prisma.dapp.count({
+        where: {
+          featured: true
+        }
       })
-      console.log('Found dapps:', dapps.length)
-    } catch (error) {
-      console.error('Error fetching dapps:', error)
     }
     
     return NextResponse.json({ 
       success: true,
       connection: 'ok',
       environment: process.env.NODE_ENV,
-      counts: {
-        dapps: dappCount,
-        images: imageCount
-      },
-      sampleDapps: dapps.map(d => ({
-        name: d.name,
-        imageCount: d._count.images,
-        imageUrls: d.images.map(img => img.url)
-      }))
+      data: results
     })
   } catch (error) {
     console.error('Database connection error:', error)
@@ -86,5 +57,7 @@ export async function GET() {
       error: error instanceof Error ? error.message : 'Unknown error',
       details: error instanceof Error ? error.stack : undefined
     }, { status: 500 })
+  } finally {
+    await prisma.$disconnect()
   }
 }
