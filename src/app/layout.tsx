@@ -7,8 +7,20 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Dapp Design Archive - UI/UX Gallery for Web3 Apps',
-  description: 'Curated collection of the best UI/UX designs from Web3 dapps. Browse flows, download designs, and get inspired.',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+  title: 'DappArchive',
+  description: 'Explore the best Web3 dapp designs and user flows',
+  openGraph: {
+    title: 'DappArchive',
+    description: 'Explore the best Web3 dapp designs and user flows',
+    url: 'https://dapparchive.com',
+    siteName: 'DappArchive',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'DappArchive',
+    description: 'Explore the best Web3 dapp designs and user flows',
+  },
 }
 
 export default function RootLayout({

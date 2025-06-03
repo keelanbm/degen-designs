@@ -5,7 +5,6 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  relationMode = "prisma"
 }
 
 // ... rest of your models stay the same
@@ -56,9 +55,9 @@ model Image {
 
   dappId String
   dapp   Dapp   @relation(fields: [dappId], references: [id], onDelete: Cascade)
-
   flowSteps FlowStep[]
 
+  @@index([dappId])
   @@map("images")
 }
 
@@ -71,9 +70,9 @@ model Flow {
 
   dappId String
   dapp   Dapp   @relation(fields: [dappId], references: [id], onDelete: Cascade)
-
   steps FlowStep[]
 
+  @@index([dappId])
   @@map("flows")
 }
  
@@ -86,6 +85,8 @@ model FlowStep {
   imageId String
   image   Image  @relation(fields: [imageId], references: [id], onDelete: Cascade)
 
+  @@index([flowId])
+  @@index([imageId])
   @@unique([flowId, order])
   @@map("flow_steps")
 }
