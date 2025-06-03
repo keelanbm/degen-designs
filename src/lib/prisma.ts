@@ -10,19 +10,31 @@ const prismaClientSingleton = () => {
   }
 
   return new PrismaClient({
-    log: ['error', 'warn'],
     datasources: {
       db: {
         url: dbUrl
       }
     },
+    log: ['error', 'warn'],
     errorFormat: 'pretty',
   }).$extends({
     query: {
       async $allOperations({ operation, model, args, query }) {
         try {
-          const result = await query(args)
-          return result
+          let attempts = 0
+          const maxAttempts = 3
+          
+          while (attempts < maxAttempts) {
+            try {
+              return await query(args)
+            } catch (error) {
+              attempts++
+              if (attempts === maxAttempts || !isRetryableError(error)) {
+                throw error
+              }
+              await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 100))
+            }
+          }
         } catch (error) {
           console.error(`Database operation failed: ${model}.${operation}`, {
             error: error instanceof Error ? error.message : String(error),
@@ -34,6 +46,18 @@ const prismaClientSingleton = () => {
       },
     },
   })
+}
+
+function isRetryableError(error: unknown) {
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase()
+    return message.includes('connection') ||
+           message.includes('timeout') ||
+           message.includes('prepared statement') ||
+           message.includes('pool') ||
+           message.includes('deadlock')
+  }
+  return false
 }
 
 declare global {
