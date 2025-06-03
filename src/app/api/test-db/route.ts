@@ -24,10 +24,6 @@ type DappWithImages = Prisma.DappGetPayload<{
 
 export async function GET() {
   try {
-    // Test database connection with a simple query
-    const connectionTest = await prisma.$queryRaw`SELECT 1 as connected`
-    console.log('Database connection test:', connectionTest)
-
     // Get counts with separate queries to isolate issues
     let dappCount = 0
     let imageCount = 0
