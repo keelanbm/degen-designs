@@ -1,29 +1,32 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    images: {
-      remotePatterns: [
-        {
-          protocol: 'https',
-          hostname: 'res.cloudinary.com',
-          pathname: '/**',
-        },
-        {
-          protocol: 'https',
-          hostname: 'images.unsplash.com',
-          pathname: '/**',
-        },
-      ],
-    },
-    env: {
-      CUSTOM_KEY: process.env.CUSTOM_KEY,
-    },
-    experimental: {
-      serverComponentsExternalPackages: ['@prisma/client', '@prisma/engines'],
-    },
-    // Disable static optimization for API routes
-    async rewrites() {
-      return []
-    },
-  }
-  
-  module.exports = nextConfig
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        pathname: '/**',
+      },
+    ],
+  },
+  experimental: {
+    serverComponentsExternalPackages: ['@prisma/client'],
+  },
+  // Optimize for Vercel deployment
+  outputFileTracing: true,
+  // Disable static optimization for pages that use database
+  async rewrites() {
+    return []
+  },
+  // Ensure proper environment variable handling
+  env: {
+    DATABASE_URL: process.env.DATABASE_URL,
+  },
+}
+
+module.exports = nextConfig

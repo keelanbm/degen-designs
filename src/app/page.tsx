@@ -22,7 +22,6 @@ async function getDapps() {
     // Log environment info for debugging
     console.log('Database connection check:', {
       hasUrl: !!process.env.DATABASE_URL,
-      hasDirectUrl: !!process.env.DIRECT_URL,
       env: process.env.NODE_ENV
     })
 

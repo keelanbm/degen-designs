@@ -11,7 +11,6 @@ export async function GET() {
     const envCheck = {
       nodeEnv: process.env.NODE_ENV,
       hasDbUrl: !!process.env.DATABASE_URL,
-      hasDirectUrl: !!process.env.DIRECT_URL,
       appUrl: process.env.NEXT_PUBLIC_APP_URL,
     }
 
@@ -28,7 +27,6 @@ export async function GET() {
       environment: {
         nodeEnv: process.env.NODE_ENV,
         hasDbUrl: !!process.env.DATABASE_URL,
-        hasDirectUrl: !!process.env.DIRECT_URL,
         appUrl: process.env.NEXT_PUBLIC_APP_URL,
       }
     }, { status: 500 })
