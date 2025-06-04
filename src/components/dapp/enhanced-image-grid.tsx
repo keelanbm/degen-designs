@@ -18,7 +18,7 @@ interface ImageData {
   uiElement: string | null
   version: string | null
   tags: string[]
-  createdAt: Date
+  createdAt: string
   isPremium: boolean
 }
 

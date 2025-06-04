@@ -1,7 +1,8 @@
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
+import { DappCategory, ImageFlow, UIElement } from '@prisma/client'
 
-export async function getImages(dappId?: string, category?: string) {
+export async function getImages(dappId?: string, category?: DappCategory) {
   const user = await getCurrentUser()
   
   const images = await db.image.findMany({
@@ -35,14 +36,14 @@ export async function createImage(data: {
   url: string
   title?: string | null
   description?: string | null
-  category?: string | null
+  category?: DappCategory | null
   version?: string | null
   capturedAt?: Date | null
   isPremium?: boolean
   order?: number
   dappId: string
-  flow?: string | null
-  uiElement?: string | null
+  flow?: ImageFlow | null
+  uiElement?: UIElement | null
   tags?: string[]
 }) {
   return await db.image.create({
@@ -50,14 +51,14 @@ export async function createImage(data: {
       url: data.url,
       title: data.title || undefined,
       description: data.description || undefined,
-      category: data.category as any,
+      category: data.category || undefined,
       version: data.version || undefined,
       capturedAt: data.capturedAt || undefined,
       isPremium: data.isPremium || false,
       order: data.order || 0,
       dappId: data.dappId,
-      flow: data.flow as any,
-      uiElement: data.uiElement as any,
+      flow: data.flow || undefined,
+      uiElement: data.uiElement || undefined,
       tags: data.tags || [],
     },
   })
@@ -68,13 +69,13 @@ export async function updateImage(
   data: {
     title?: string
     description?: string
-    category?: string
+    category?: DappCategory
     version?: string
     capturedAt?: Date
     isPremium?: boolean
     order?: number
-    flow?: string
-    uiElement?: string
+    flow?: ImageFlow
+    uiElement?: UIElement
     tags?: string[]
   }
 ) {

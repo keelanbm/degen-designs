@@ -1,12 +1,8 @@
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
-import { Button } from '@/components/ui/button'
-import { ExternalLink, Globe } from 'lucide-react'
 import { ErrorDisplay } from './error-display'
-import { EnhancedImageGrid } from '@/components/dapp/enhanced-image-grid'
 import { cache } from 'react'
-import { Badge } from '@/components/ui/badge'
+import DappDetailClient from '@/components/dapp/dapp-detail-client'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -122,81 +118,18 @@ export default async function DappPage({ params }: DappPageProps) {
       category: image.category || 'General'
     }))
 
-    // Group images by category
-    const imagesByCategory: Record<string, any[]> = {}
-    
-    normalizedImages.forEach(image => {
-      const category = image.category || 'General'
-      if (!imagesByCategory[category]) {
-        imagesByCategory[category] = []
-      }
-      imagesByCategory[category].push(image)
-    })
-    
-    const categories = Object.keys(imagesByCategory)
+    // Serialize dates for client component
+    const serializedDapp = {
+      ...dapp,
+      createdAt: dapp.createdAt.toISOString(),
+      updatedAt: dapp.updatedAt.toISOString(),
+      images: normalizedImages.map(img => ({
+        ...img,
+        createdAt: img.createdAt.toISOString()
+      }))
+    }
 
-    return (
-      <div className="container mx-auto px-4 py-8">
-        {/* Dapp Header */}
-        <div className="mb-8">
-          <div className="flex flex-wrap items-center gap-2 mb-2">
-            <h1 className="text-3xl font-bold">{dapp.name}</h1>
-            
-            <div className="flex gap-2">
-              {dapp.type && (
-                <Badge variant="secondary">
-                  {dapp.type}
-                </Badge>
-              )}
-              
-              {dapp.category && (
-                <Badge variant="outline">
-                  {dapp.category}
-                </Badge>
-              )}
-            </div>
-          </div>
-          
-          {dapp.description && (
-            <p className="text-lg text-muted-foreground mb-4">{dapp.description}</p>
-          )}
-          
-          <div className="flex items-center gap-4">
-            {dapp.website && (
-              <Button variant="outline" size="sm" asChild>
-                <Link href={dapp.website} target="_blank" rel="noopener noreferrer">
-                  <Globe className="h-4 w-4 mr-2" />
-                  Visit Website
-                  <ExternalLink className="h-3 w-3 ml-1" />
-                </Link>
-              </Button>
-            )}
-            
-            <div className="text-sm text-muted-foreground">
-              {dapp.images.length} screens
-            </div>
-          </div>
-        </div>
-
-        {/* Images Section */}
-        <div className="space-y-12">
-          {categories.length > 1 ? (
-            // Multiple categories - show sections
-            categories.map((category) => (
-              <section key={category} className="space-y-4">
-                <h2 className="text-2xl font-semibold">
-                  {category} ({imagesByCategory[category].length})
-                </h2>
-                <EnhancedImageGrid images={imagesByCategory[category]} />
-              </section>
-            ))
-          ) : (
-            // Single category - show all images with filter
-            <EnhancedImageGrid images={normalizedImages} />
-          )}
-        </div>
-      </div>
-    )
+    return <DappDetailClient dapp={serializedDapp} />
   } catch (e) {
     console.error('Error in DappPage:', e)
     error = e instanceof Error ? e : new Error('An unexpected error occurred')

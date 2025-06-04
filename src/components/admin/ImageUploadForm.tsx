@@ -165,13 +165,10 @@ export function ImageUploadForm({ dapps }: ImageUploadFormProps) {
         .getPublicUrl(filePath)
       
       // 3. Create record in database
-      const token = await user?.getToken()
-      
       const response = await fetch('/api/images', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           url: publicUrl,
@@ -254,7 +251,7 @@ export function ImageUploadForm({ dapps }: ImageUploadFormProps) {
               <X className="h-4 w-4" />
             </Button>
             <p className="text-sm text-muted-foreground mt-2">
-              {file?.name} ({(file?.size / 1024 / 1024).toFixed(2)} MB)
+              {file?.name} ({file && file.size ? (file.size / 1024 / 1024).toFixed(2) : 0} MB)
             </p>
           </div>
         ) : (

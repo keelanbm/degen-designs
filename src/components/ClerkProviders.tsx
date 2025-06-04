@@ -11,17 +11,14 @@ export default function ClerkProviders({ children }: { children: React.ReactNode
   return (
     <ClerkProvider
       appearance={{
-        baseTheme: {
-          colors: {
-            primary: "#22c55e",
-          }
+        variables: {
+          colorPrimary: "#22c55e",
         },
         elements: {
           formButtonPrimary: 'bg-primary hover:bg-primary/80',
           footerActionLink: 'text-primary hover:text-primary/80',
         }
       }}
-      navigate={(to) => router.push(to)}
     >
       <Navbar />
       {children}

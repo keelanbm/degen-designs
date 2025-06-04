@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, DappCategory, DappType, ImageFlow, UIElement } from '@prisma/client'
 import { readdir, readFile } from 'fs/promises'
 import { join, extname, basename } from 'path'
 import { slugify } from '../src/lib/utils'
@@ -11,14 +11,14 @@ interface ImageUploadConfig {
   name: string
   description?: string
   website?: string
-  category?: string
-  type?: string
+  category?: DappCategory
+  type?: DappType
   version?: string
   capturedAt?: string
   imagesPath: string
-  imageCategories?: Record<string, string>
-  imageFlows?: Record<string, string>
-  imageUIElements?: Record<string, string>
+  imageCategories?: Record<string, DappCategory>
+  imageFlows?: Record<string, ImageFlow>
+  imageUIElements?: Record<string, UIElement>
   imageTags?: Record<string, string[]>
   isPremium?: boolean
 }
@@ -79,9 +79,9 @@ async function uploadImages(dappKey: string, config: ImageUploadConfig) {
           .replace(/[-_]/g, ' ')
           .replace(/\b\w/g, l => l.toUpperCase())
 
-        const category = config.imageCategories?.[filename] || 'General'
-        const flow = config.imageFlows?.[filename]
-        const uiElement = config.imageUIElements?.[filename]
+        const category = config.imageCategories?.[filename] as DappCategory | undefined
+        const flow = config.imageFlows?.[filename] as ImageFlow | undefined
+        const uiElement = config.imageUIElements?.[filename] as UIElement | undefined
         const tags = config.imageTags?.[filename] || []
 
         await db.image.create({

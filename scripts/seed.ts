@@ -19,28 +19,29 @@ async function main() {
         slug: 'gmx-v2',
         description: 'The largest Perp DEX on Arbitrum, trade with up to 100x leverage',
         website: 'https://gmx.io',
-        category: 'DEFI',
+        category: 'EXCHANGE',
+        type: 'DEFI',
         featured: true,
         images: {
           create: [
             {
               url: 'https://res.cloudinary.com/dgxzqy4kl/image/upload/v1709433600/gmx-limit.png',
               title: 'Limit Order',
-              category: 'Trading',
+              category: 'EXCHANGE',
               version: 'v2',
               order: 0
             },
             {
               url: 'https://res.cloudinary.com/dgxzqy4kl/image/upload/v1709433600/gmx-market.png',
               title: 'Market Order',
-              category: 'Trading',
+              category: 'EXCHANGE',
               version: 'v2',
               order: 1
             },
             {
               url: 'https://res.cloudinary.com/dgxzqy4kl/image/upload/v1709433600/gmx-dashboard.png',
               title: 'Dashboard',
-              category: 'Overview',
+              category: 'ANALYTICS',
               version: 'v2',
               order: 2
             }
@@ -56,21 +57,22 @@ async function main() {
         slug: 'jupiter',
         description: 'The key liquidity aggregator for Solana, providing the best swap rates',
         website: 'https://jup.ag',
-        category: 'DEX',
+        category: 'EXCHANGE',
+        type: 'DEFI',
         featured: true,
         images: {
           create: [
             {
               url: 'https://res.cloudinary.com/dgxzqy4kl/image/upload/v1709433600/jupiter-swap.png',
               title: 'Swap Interface',
-              category: 'Trading',
+              category: 'EXCHANGE',
               version: 'v6',
               order: 0
             },
             {
               url: 'https://res.cloudinary.com/dgxzqy4kl/image/upload/v1709433600/jupiter-settings.png',
               title: 'Settings',
-              category: 'Settings',
+              category: 'OTHER',
               version: 'v6',
               order: 1
             }
