@@ -43,7 +43,7 @@ export default function AdminLayout({
         <Card>
           <CardContent className="p-6">
             <h2 className="text-xl font-bold text-red-500">Access Denied</h2>
-            <p className="mt-2">You don't have permission to access this area.</p>
+            <p className="mt-2">You don&apos;t have permission to access this area.</p>
           </CardContent>
         </Card>
       </div>

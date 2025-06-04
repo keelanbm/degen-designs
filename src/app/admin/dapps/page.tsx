@@ -254,7 +254,13 @@ async function getDapps() {
   }
 }
 
-export default async function DappManagementPage() {
+export default function DappManagementPage() {
+  return (
+    <ClientWrapper />
+  )
+}
+
+async function ClientWrapper() {
   const dapps = await getDapps()
   return <DappManagementClient dapps={dapps} />
 } 
