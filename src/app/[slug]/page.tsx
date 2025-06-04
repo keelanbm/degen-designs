@@ -70,15 +70,26 @@ export default async function DappPage({ params }: DappPageProps) {
       notFound()
     }
 
+    // Ensure images are plain objects
+    const plainImages: ImageData[] = dapp.images.map(image => ({
+      id: image.id,
+      url: image.url,
+      title: image.title,
+      category: image.category,
+      version: image.version,
+      // Ensure all properties from Prisma model are explicitly handled or omitted
+      // if they are not plain objects (e.g., Date objects would need .toISOString())
+    }));
+
     // Group images by category
-    const imagesByCategory = dapp.images.reduce((acc, image) => {
+    const imagesByCategory = plainImages.reduce((acc, image) => {
       const category = image.category || 'General'
       if (!acc[category]) {
         acc[category] = []
       }
       acc[category].push(image)
       return acc
-    }, {} as Record<string, typeof dapp.images>)
+    }, {} as Record<string, ImageData[]>); // Ensure this uses ImageData[]
 
     const categories = Object.keys(imagesByCategory)
 
@@ -130,7 +141,7 @@ export default async function DappPage({ params }: DappPageProps) {
             ))
           ) : (
             // Single category - show all images
-            <SimpleImageGrid images={dapp.images} />
+            <SimpleImageGrid images={plainImages} />
           )}
         </div>
       </div>
