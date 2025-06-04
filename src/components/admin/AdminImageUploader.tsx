@@ -3,9 +3,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
+// Get environment variables with fallbacks
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  supabaseUrl,
+  supabaseAnonKey
 )
 
 const ADMIN_EMAIL = 'keelan.miskell@gmail.com'
@@ -25,8 +29,18 @@ export default function AdminImageUploader() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
+    // Check if Supabase is properly configured
+    if (!supabaseUrl || !supabaseAnonKey) {
+      setStatus('Supabase environment variables are missing')
+      return
+    }
+    
     supabase.auth.getUser().then(({ data }) => {
       if (data?.user?.email === ADMIN_EMAIL) setIsAdmin(true)
+    })
+    .catch(error => {
+      console.error('Auth error:', error)
+      setStatus('Authentication error')
     })
   }, [])
 

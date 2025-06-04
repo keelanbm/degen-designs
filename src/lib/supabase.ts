@@ -1,9 +1,20 @@
 import { createClient } from '@supabase/supabase-js'
 
+// Get environment variables with validation
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+// Check for missing environment variables
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error(
+    'Missing Supabase environment variables. Please make sure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.'
+  )
+}
+
 // Initialize the Supabase client
 export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  supabaseUrl || '',
+  supabaseAnonKey || ''
 )
 
 // Storage bucket details
@@ -14,6 +25,12 @@ export const STORAGE_BUCKETS = {
 // Initialize Supabase bucket
 export const initializeStorage = async () => {
   try {
+    // Verify we have valid credentials before proceeding
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('Cannot initialize storage: Missing Supabase credentials')
+      return false
+    }
+    
     // Check if the bucket exists
     const { data: buckets } = await supabase.storage.listBuckets()
     const imagesBucketExists = buckets?.some(bucket => bucket.name === STORAGE_BUCKETS.IMAGES)
