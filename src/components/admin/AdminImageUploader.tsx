@@ -7,10 +7,17 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
+// Default URL to prevent crashes during initialization
+const fallbackUrl = 'https://placeholder-supabase-instance.supabase.co'
+
 const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey
+  supabaseUrl || fallbackUrl,
+  supabaseAnonKey || 'placeholder-key'
 )
+
+// Log environment status without exposing sensitive information
+console.log('AdminImageUploader - Supabase URL exists:', !!supabaseUrl)
+console.log('AdminImageUploader - Supabase Key exists:', !!supabaseAnonKey)
 
 const ADMIN_EMAIL = 'keelan.miskell@gmail.com'
 const MAX_FILE_SIZE = 6 * 1024 * 1024 // 6MB

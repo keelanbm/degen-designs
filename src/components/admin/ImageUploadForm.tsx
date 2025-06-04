@@ -55,10 +55,17 @@ export function ImageUploadForm({ dapps }: ImageUploadFormProps) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
+  // Default URL to prevent crashes during initialization
+  const fallbackUrl = 'https://placeholder-supabase-instance.supabase.co'
+
   const supabase = createClient(
-    supabaseUrl,
-    supabaseAnonKey
+    supabaseUrl || fallbackUrl,
+    supabaseAnonKey || 'placeholder-key'
   )
+
+  // Log environment status without exposing sensitive information
+  console.log('ImageUploadForm - Supabase URL exists:', !!supabaseUrl)
+  console.log('ImageUploadForm - Supabase Key exists:', !!supabaseAnonKey)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {

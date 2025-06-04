@@ -1,8 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Get environment variables with validation
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+
+// Add debug logging to help identify issues
+console.log('Supabase URL (masked):', supabaseUrl ? `${supabaseUrl.substring(0, 8)}...` : 'missing')
+console.log('Supabase Anon Key (exists):', !!supabaseAnonKey)
 
 // Check for missing environment variables
 if (!supabaseUrl || !supabaseAnonKey) {
@@ -11,10 +15,13 @@ if (!supabaseUrl || !supabaseAnonKey) {
   )
 }
 
-// Initialize the Supabase client
+// Default URL to prevent crashes - this won't work for actual requests, but prevents immediate crashes
+const fallbackUrl = 'https://placeholder-supabase-instance.supabase.co'
+
+// Initialize the Supabase client with fallbacks
 export const supabase = createClient(
-  supabaseUrl || '',
-  supabaseAnonKey || ''
+  supabaseUrl || fallbackUrl,
+  supabaseAnonKey || 'placeholder-key'
 )
 
 // Storage bucket details

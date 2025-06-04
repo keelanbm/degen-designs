@@ -12,6 +12,12 @@ const nextConfig = {
         hostname: 'images.unsplash.com',
         pathname: '/**',
       },
+      // Allow Supabase storage URLs
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        pathname: '/**',
+      },
     ],
     unoptimized: true, // Allow serving local images from public directory
   },
@@ -27,6 +33,8 @@ const nextConfig = {
   // Ensure proper environment variable handling
   env: {
     DATABASE_URL: process.env.DATABASE_URL,
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   },
 }
 
