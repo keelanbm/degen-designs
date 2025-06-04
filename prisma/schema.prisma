@@ -7,8 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ... rest of your models stay the same
-
 model User {
   id               String   @id @default(cuid())
   clerkId          String   @unique
@@ -45,9 +43,9 @@ model Image {
   url         String
   title       String?
   description String?
-  category    String? // "onboarding", "trading", "settings", etc.
-  version     String?  // "v1", "v2", "2024-05", "pre-update", etc.
-  capturedAt  DateTime? // When the screenshot was taken
+  category    String?
+  version     String?
+  capturedAt  DateTime?
   isPremium   Boolean  @default(false)
   order       Int      @default(0)
   createdAt   DateTime @default(now())

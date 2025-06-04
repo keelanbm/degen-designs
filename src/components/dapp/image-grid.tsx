@@ -18,7 +18,8 @@ interface SimpleImageGridProps {
 export function SimpleImageGrid({ images }: SimpleImageGridProps) {
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
 
-  const handleImageError = (imageId: string) => {
+  const handleImageError = (imageId: string, url: string) => {
+    console.error(`Failed to load image: ${url}`)
     setFailedImages(prev => new Set(prev).add(imageId))
   }
 
@@ -47,7 +48,8 @@ export function SimpleImageGrid({ images }: SimpleImageGridProps) {
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                 priority={false}
                 loading="lazy"
-                onError={() => handleImageError(image.id)}
+                onError={() => handleImageError(image.id, image.url)}
+                unoptimized={image.url.startsWith('/')} // Disable optimization for local images
               />
               {/* Overlay with image info */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -67,8 +69,11 @@ export function SimpleImageGrid({ images }: SimpleImageGridProps) {
               </div>
             </div>
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400">
-              <p className="text-sm">Image unavailable</p>
+            <div className="w-full h-full aspect-[3/4] flex items-center justify-center text-gray-400 bg-muted">
+              <div className="text-center p-4">
+                <p className="text-sm mb-1">Image unavailable</p>
+                <p className="text-xs opacity-60 break-all">{image.url}</p>
+              </div>
             </div>
           )}
         </div>

@@ -15,14 +15,14 @@ export async function GET() {
       
       // Get first dapp with its images
       firstDapp: await prisma.dapp.findFirst({
-        include: {
+      include: {
           images: {
             select: {
               url: true,
               title: true
             }
-          }
         }
+      }
       }),
       
       // Get all unique categories
@@ -44,7 +44,7 @@ export async function GET() {
     }
     
     return NextResponse.json({ 
-      success: true,
+      success: true, 
       connection: 'ok',
       environment: process.env.NODE_ENV,
       data: results

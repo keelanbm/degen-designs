@@ -13,6 +13,7 @@ const nextConfig = {
         pathname: '/**',
       },
     ],
+    unoptimized: true, // Allow serving local images from public directory
   },
   experimental: {
     serverComponentsExternalPackages: ['@prisma/client'],
