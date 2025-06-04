@@ -7,6 +7,52 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum DappType {
+  DEFI
+  NFT
+  SOCIAL
+  GAMING
+  TOOLS
+  OTHER
+}
+
+enum DappCategory {
+  LENDING
+  EXCHANGE
+  MARKETPLACE
+  WALLET
+  ANALYTICS
+  GOVERNANCE
+  LAUNCHPAD
+  BRIDGE
+  OTHER
+}
+
+enum ImageFlow {
+  ONBOARDING
+  TRADING
+  MINTING
+  PROFILE
+  SETTINGS
+  SWAP
+  SEND
+  RECEIVE
+  OTHER
+}
+
+enum UIElement {
+  TABLE
+  DIALOG
+  CARD
+  FORM
+  CHART
+  MODAL
+  NAVIGATION
+  BUTTON
+  INPUT
+  OTHER
+}
+
 model User {
   id               String   @id @default(cuid())
   clerkId          String   @unique
@@ -27,7 +73,8 @@ model Dapp {
   description String?
   logoUrl     String?
   website     String?
-  category    String?
+  category    DappCategory?
+  type        DappType?
   featured    Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -43,13 +90,17 @@ model Image {
   url         String
   title       String?
   description String?
-  category    String?
+  category    DappCategory?
   version     String?
   capturedAt  DateTime?
   isPremium   Boolean  @default(false)
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  flow        ImageFlow?
+  uiElement   UIElement?
+  tags        String[]
 
   dappId String
   dapp   Dapp   @relation(fields: [dappId], references: [id], onDelete: Cascade)

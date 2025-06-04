@@ -12,10 +12,14 @@ interface ImageUploadConfig {
   description?: string
   website?: string
   category?: string
+  type?: string
   version?: string
   capturedAt?: string
   imagesPath: string
   imageCategories?: Record<string, string>
+  imageFlows?: Record<string, string>
+  imageUIElements?: Record<string, string>
+  imageTags?: Record<string, string[]>
   isPremium?: boolean
 }
 
@@ -48,6 +52,7 @@ async function uploadImages(dappKey: string, config: ImageUploadConfig) {
           description: config.description,
           website: config.website,
           category: config.category,
+          type: config.type,
           featured: true,
         }
       })
@@ -75,6 +80,9 @@ async function uploadImages(dappKey: string, config: ImageUploadConfig) {
           .replace(/\b\w/g, l => l.toUpperCase())
 
         const category = config.imageCategories?.[filename] || 'General'
+        const flow = config.imageFlows?.[filename]
+        const uiElement = config.imageUIElements?.[filename]
+        const tags = config.imageTags?.[filename] || []
 
         await db.image.create({
           data: {
@@ -86,6 +94,9 @@ async function uploadImages(dappKey: string, config: ImageUploadConfig) {
             isPremium: config.isPremium || false,
             order: i,
             dappId: dapp.id,
+            flow: flow,
+            uiElement: uiElement,
+            tags: tags,
           }
         })
 

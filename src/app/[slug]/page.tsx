@@ -4,8 +4,9 @@ import { prisma } from '@/lib/prisma'
 import { Button } from '@/components/ui/button'
 import { ExternalLink, Globe } from 'lucide-react'
 import { ErrorDisplay } from './error-display'
-import { SimpleImageGrid } from '@/components/dapp/image-grid'
+import { EnhancedImageGrid } from '@/components/dapp/enhanced-image-grid'
 import { cache } from 'react'
+import { Badge } from '@/components/ui/badge'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -20,8 +21,14 @@ interface ImageData {
   id: string
   url: string
   title: string | null
+  description: string | null
   category: string | null
   version: string | null
+  flow: string | null
+  uiElement: string | null
+  tags: string[]
+  createdAt: Date
+  isPremium: boolean
 }
 
 interface DappData {
@@ -30,6 +37,7 @@ interface DappData {
   slug: string
   description: string | null
   category: string | null
+  type: string | null
   website: string | null
   images: ImageData[]
 }
@@ -38,22 +46,57 @@ interface DappData {
 const getDappBySlug = cache(async (slug: string) => {
   try {
     console.log('Fetching dapp with slug:', slug)
-    const dapp = await prisma.dapp.findUnique({
-      where: { slug },
-      include: {
-        images: {
-          orderBy: [{ order: 'asc' }, { createdAt: 'asc' }]
+    
+    // First try a simpler query without the type/category fields
+    // to avoid errors if these columns don't exist yet
+    try {
+      const dapp = await prisma.dapp.findUnique({
+        where: { slug },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          description: true,
+          logoUrl: true,
+          website: true,
+          featured: true, 
+          createdAt: true,
+          updatedAt: true,
+          images: {
+            select: {
+              id: true,
+              url: true,
+              title: true,
+              description: true,
+              version: true,
+              isPremium: true,
+              order: true,
+              createdAt: true
+            },
+            orderBy: [{ order: 'asc' }, { createdAt: 'asc' }]
+          }
         }
-      }
-    })
-
-    console.log('Dapp fetch result:', {
-      found: !!dapp,
-      name: dapp?.name,
-      imageCount: dapp?.images.length
-    })
-
-    return dapp
+      })
+      
+      if (!dapp) return null;
+      
+      // Add empty type/category fields
+      return {
+        ...dapp,
+        type: null,
+        category: null,
+        images: dapp.images.map(img => ({
+          ...img,
+          category: null,
+          flow: null,
+          uiElement: null,
+          tags: []
+        }))
+      };
+    } catch (error) {
+      console.error('Basic dapp query failed:', error);
+      throw error;
+    }
   } catch (error) {
     console.error('Failed to fetch dapp:', error)
     throw new Error('Failed to load dapp data. Please try again later.')
@@ -70,40 +113,48 @@ export default async function DappPage({ params }: DappPageProps) {
       notFound()
     }
 
-    // Ensure images are plain objects
-    const plainImages: ImageData[] = dapp.images.map(image => ({
-      id: image.id,
-      url: image.url,
-      title: image.title,
-      category: image.category,
-      version: image.version,
-      // Ensure all properties from Prisma model are explicitly handled or omitted
-      // if they are not plain objects (e.g., Date objects would need .toISOString())
-    }));
+    // Ensure images have the required fields even if null
+    const normalizedImages = dapp.images.map(image => ({
+      ...image,
+      tags: image.tags || [],
+      flow: image.flow || null,
+      uiElement: image.uiElement || null,
+      category: image.category || 'General'
+    }))
 
     // Group images by category
-    const imagesByCategory = plainImages.reduce((acc, image) => {
+    const imagesByCategory: Record<string, any[]> = {}
+    
+    normalizedImages.forEach(image => {
       const category = image.category || 'General'
-      if (!acc[category]) {
-        acc[category] = []
+      if (!imagesByCategory[category]) {
+        imagesByCategory[category] = []
       }
-      acc[category].push(image)
-      return acc
-    }, {} as Record<string, ImageData[]>); // Ensure this uses ImageData[]
-
+      imagesByCategory[category].push(image)
+    })
+    
     const categories = Object.keys(imagesByCategory)
 
     return (
       <div className="container mx-auto px-4 py-8">
         {/* Dapp Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-4 mb-2">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
             <h1 className="text-3xl font-bold">{dapp.name}</h1>
-            {dapp.category && (
-              <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm">
-                {dapp.category}
-              </span>
-            )}
+            
+            <div className="flex gap-2">
+              {dapp.type && (
+                <Badge variant="secondary">
+                  {dapp.type}
+                </Badge>
+              )}
+              
+              {dapp.category && (
+                <Badge variant="outline">
+                  {dapp.category}
+                </Badge>
+              )}
+            </div>
           </div>
           
           {dapp.description && (
@@ -128,20 +179,20 @@ export default async function DappPage({ params }: DappPageProps) {
         </div>
 
         {/* Images Section */}
-        <div className="space-y-8">
+        <div className="space-y-12">
           {categories.length > 1 ? (
             // Multiple categories - show sections
             categories.map((category) => (
-              <section key={category}>
-                <h2 className="text-2xl font-semibold mb-4">
+              <section key={category} className="space-y-4">
+                <h2 className="text-2xl font-semibold">
                   {category} ({imagesByCategory[category].length})
                 </h2>
-                <SimpleImageGrid images={imagesByCategory[category]} />
+                <EnhancedImageGrid images={imagesByCategory[category]} />
               </section>
             ))
           ) : (
-            // Single category - show all images
-            <SimpleImageGrid images={plainImages} />
+            // Single category - show all images with filter
+            <EnhancedImageGrid images={normalizedImages} />
           )}
         </div>
       </div>

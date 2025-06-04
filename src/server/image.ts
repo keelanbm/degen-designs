@@ -33,22 +33,32 @@ export async function getImages(dappId?: string, category?: string) {
 
 export async function createImage(data: {
   url: string
-  title?: string
-  description?: string
-  category?: string
+  title?: string | null
+  description?: string | null
+  category?: string | null
+  version?: string | null
+  capturedAt?: Date | null
   isPremium?: boolean
   order?: number
   dappId: string
+  flow?: string | null
+  uiElement?: string | null
+  tags?: string[]
 }) {
   return await db.image.create({
     data: {
       url: data.url,
-      title: data.title,
-      description: data.description,
-      category: data.category,
+      title: data.title || undefined,
+      description: data.description || undefined,
+      category: data.category as any,
+      version: data.version || undefined,
+      capturedAt: data.capturedAt || undefined,
       isPremium: data.isPremium || false,
       order: data.order || 0,
       dappId: data.dappId,
+      flow: data.flow as any,
+      uiElement: data.uiElement as any,
+      tags: data.tags || [],
     },
   })
 }
@@ -59,8 +69,13 @@ export async function updateImage(
     title?: string
     description?: string
     category?: string
+    version?: string
+    capturedAt?: Date
     isPremium?: boolean
     order?: number
+    flow?: string
+    uiElement?: string
+    tags?: string[]
   }
 ) {
   return await db.image.update({
