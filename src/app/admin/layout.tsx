@@ -64,4 +64,7 @@ export default function AdminLayout({
       {children}
     </div>
   )
-} 
+}
+
+// Add this line to force dynamic rendering for all admin pages
+export const dynamic = 'force-dynamic' 

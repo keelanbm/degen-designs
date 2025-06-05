@@ -3,5 +3,20 @@
     "app/**/*.{js,ts}": {
       "maxDuration": 30
     }
-  }
+  },
+  "buildCommand": "next build",
+  "devCommand": "next dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "regions": ["iad1"],
+  "env": {
+    "APP_ENV": "production"
+  },
+  "builds": [
+    {
+      "src": "next.config.js",
+      "use": "@vercel/next"
+    }
+  ]
 }

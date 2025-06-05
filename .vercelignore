@@ -1,0 +1,17 @@
+# Dependencies
+node_modules
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Build outputs
+.next
+out
+
+# Admin pages (don't prerender these)
+src/app/admin
+
+# Debug files
+.vscode
+.DS_Store 
