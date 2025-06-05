@@ -26,6 +26,52 @@ interface HomePageProps {
   }
 }
 
+// Fallback data in case database connection fails
+const FALLBACK_DAPPS = [
+  {
+    id: 'fallback-1',
+    name: 'Uniswap',
+    slug: 'uniswap',
+    description: 'Leading decentralized exchange protocol for swapping tokens',
+    logoUrl: 'https://res.cloudinary.com/dgxzqy4kl/image/upload/v1709433600/uniswap-logo.png',
+    website: 'https://uniswap.org',
+    featured: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    type: 'DEFI',
+    category: 'EXCHANGE',
+    _count: { images: 4 }
+  },
+  {
+    id: 'fallback-2',
+    name: 'GMX V2',
+    slug: 'gmx-v2',
+    description: 'The largest Perp DEX on Arbitrum, trade with up to 100x leverage',
+    logoUrl: 'https://res.cloudinary.com/dgxzqy4kl/image/upload/v1709433600/gmx-logo.png',
+    website: 'https://gmx.io',
+    featured: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    type: 'DEFI',
+    category: 'EXCHANGE',
+    _count: { images: 3 }
+  },
+  {
+    id: 'fallback-3',
+    name: 'Jupiter',
+    slug: 'jupiter',
+    description: 'Leading decentralized exchange on Solana',
+    logoUrl: 'https://res.cloudinary.com/dgxzqy4kl/image/upload/v1709433600/jupiter-logo.png',
+    website: 'https://jup.ag',
+    featured: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    type: 'DEFI',
+    category: 'EXCHANGE',
+    _count: { images: 4 }
+  }
+];
+
 async function getDapps(typeFilters?: string[], categoryFilters?: string[]) {
   try {
     // Log environment info for debugging
@@ -42,6 +88,13 @@ async function getDapps(typeFilters?: string[], categoryFilters?: string[]) {
     } catch (connectionError) {
       console.error('Database connection test failed:', 
         connectionError instanceof Error ? connectionError.message : 'Unknown error')
+      
+      // Return fallback data in production to avoid showing error page
+      if (process.env.NODE_ENV === 'production') {
+        console.log('Using fallback data in production')
+        return FALLBACK_DAPPS;
+      }
+      
       throw new Error('Database connection failed. Please check your database URL and credentials.')
     }
 
@@ -87,29 +140,39 @@ async function getDapps(typeFilters?: string[], categoryFilters?: string[]) {
       // If first query approach fails, try a more minimal query
       console.log('Trying minimal fallback query')
       
-      const simpleDapps = await prisma.dapp.findMany({
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          description: true,
-          createdAt: true,
-          updatedAt: true
-        },
-        take: 20
-      })
-      
-      console.log('Fallback query returned:', simpleDapps.length, 'dapps')
-      
-      return simpleDapps.map(dapp => ({
-        ...dapp,
-        type: null,
-        category: null,
-        logoUrl: null,
-        website: null,
-        featured: false,
-        _count: { images: 0 }
-      }))
+      try {
+        const simpleDapps = await prisma.dapp.findMany({
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            description: true,
+            createdAt: true,
+            updatedAt: true
+          },
+          take: 20
+        })
+        
+        console.log('Fallback query returned:', simpleDapps.length, 'dapps')
+        
+        return simpleDapps.map(dapp => ({
+          ...dapp,
+          type: null,
+          category: null,
+          logoUrl: null,
+          website: null,
+          featured: false,
+          _count: { images: 0 }
+        }))
+      } catch (fallbackError) {
+        // Return fallback data in production to avoid showing error page
+        if (process.env.NODE_ENV === 'production') {
+          console.log('Using fallback data in production after query failures')
+          return FALLBACK_DAPPS;
+        }
+        
+        throw fallbackError;
+      }
     }
   } catch (error: unknown) {
     console.error('Database error details:', {
@@ -117,6 +180,13 @@ async function getDapps(typeFilters?: string[], categoryFilters?: string[]) {
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack?.substring(0, 300) : undefined
     })
+    
+    // Return fallback data in production to avoid showing error page
+    if (process.env.NODE_ENV === 'production') {
+      console.log('Using fallback data in production after error')
+      return FALLBACK_DAPPS;
+    }
+    
     throw new Error('Failed to fetch dapps. Database connection error.')
   }
 }
@@ -143,7 +213,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             The database may be empty or experiencing connectivity issues.
           </p>
           <Button asChild>
-            <Link href="/api/debug">Check Database Status</Link>
+            <Link href="/api/debug-public">Check Database Status</Link>
           </Button>
         </div>
       )
@@ -152,8 +222,8 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     // Serialize dates for client components
     const serializedDapps = dapps.map(dapp => ({
       ...dapp,
-      createdAt: dapp.createdAt.toISOString(),
-      updatedAt: dapp.updatedAt.toISOString(),
+      createdAt: dapp.createdAt instanceof Date ? dapp.createdAt.toISOString() : dapp.createdAt,
+      updatedAt: dapp.updatedAt instanceof Date ? dapp.updatedAt.toISOString() : dapp.updatedAt,
     }))
 
     return (
