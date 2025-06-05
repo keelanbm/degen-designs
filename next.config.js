@@ -30,6 +30,38 @@ const nextConfig = {
   async rewrites() {
     return []
   },
+  // Configure headers for security and performance
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: process.env.NODE_ENV === 'development' 
+              ? '' // No CSP in development for easier debugging
+              : "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.clerk.io https://*.vercel-insights.com; connect-src 'self' https://*.clerk.accounts.dev https://api.clerk.dev https://*.supabase.co wss://*.supabase.co https://*.vercel-insights.com; frame-src 'self' https://*.clerk.accounts.dev; img-src 'self' data: https://res.cloudinary.com https://images.unsplash.com https://*.supabase.co; style-src 'self' 'unsafe-inline';"
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
+  },
   // Ensure proper environment variable handling
   env: {
     DATABASE_URL: process.env.DATABASE_URL,
