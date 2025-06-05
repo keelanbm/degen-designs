@@ -4,7 +4,8 @@ import { prisma } from '@/lib/prisma'
 export const dynamic = 'force-dynamic'
 
 // Make this endpoint publicly accessible without authentication
-export const runtime = 'edge'
+// Don't use edge runtime as it doesn't support Prisma
+// export const runtime = 'edge'
 
 export async function GET() {
   try {
