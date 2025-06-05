@@ -8,10 +8,42 @@ declare global {
 const MAX_RETRIES = 3
 const RETRY_DELAY_MS = 1000
 
+// Helper to ensure database URL is properly formatted
+function validateDatabaseUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+  
+  try {
+    // Basic validation - must be postgresql:// or postgres://
+    if (!url.startsWith('postgresql://') && !url.startsWith('postgres://')) {
+      console.warn('DATABASE_URL must start with postgresql:// or postgres://')
+      return url; // Return as is, let Prisma handle the error
+    }
+    
+    // Check for proper URL encoding of special characters in password
+    const parts = url.split('@');
+    if (parts.length !== 2) {
+      console.warn('DATABASE_URL has invalid format - missing or multiple @ characters');
+      return url;
+    }
+    
+    // Basic structure check
+    const credentials = parts[0].split('://');
+    if (credentials.length !== 2) {
+      console.warn('DATABASE_URL has invalid protocol format');
+      return url;
+    }
+    
+    return url;
+  } catch (error) {
+    console.error('Error validating DATABASE_URL:', error);
+    return url;
+  }
+}
+
 // Singleton function for creating Prisma client with retry mechanism
 function createPrismaClient() {
   // Log database connection attempt
-  const dbUrl = process.env.DATABASE_URL
+  const dbUrl = validateDatabaseUrl(process.env.DATABASE_URL);
   const isDevMode = process.env.NODE_ENV === 'development'
   
   console.log('Initializing Prisma client with', {

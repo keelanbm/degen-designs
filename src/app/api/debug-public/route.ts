@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
-// Make this endpoint publicly accessible
+// Make this endpoint publicly accessible without authentication
 export const runtime = 'edge'
 
 export async function GET() {
@@ -44,6 +44,8 @@ export async function GET() {
           const hostParts = parts[1].split('/')
           if (hostParts.length < 2) {
             dbUrlValidation += 'INVALID HOST/DB FORMAT (should be host:port/database)'
+          } else if (!hostParts[0].includes(':')) {
+            dbUrlValidation += 'MISSING PORT (should be host:port)'
           } else {
             dbUrlValidation += 'VALID'
           }
@@ -56,11 +58,23 @@ export async function GET() {
       const result = await prisma.$queryRaw`SELECT 1 as check`
       console.log('Database query succeeded:', result)
       
+      // Try to get version info for additional validation
+      const versionResult = await prisma.$queryRaw`SELECT version() as version`
+      console.log('Database version check succeeded')
+      
+      // Try to count tables as a more thorough check
+      const { count } = await prisma.$queryRaw`
+        SELECT count(*) as count 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public'
+      ` as { count: BigInt }
+      
       return NextResponse.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
         database: {
           connected: true,
+          tables: Number(count),
           urlValidation: dbUrlValidation,
           format: {
             protocol: dbUrl.split('://')[0] || 'missing',
@@ -94,6 +108,15 @@ export async function GET() {
         environment: {
           nodeEnv: process.env.NODE_ENV,
           hasDbUrl: !!process.env.DATABASE_URL
+        },
+        troubleshooting: {
+          passwordEncoded: dbUrl.includes('%'),
+          tips: [
+            "Ensure your database password is URL-encoded (e.g., @ becomes %40)",
+            "Check that your database server accepts connections from Vercel",
+            "Verify the database server is running and accessible",
+            "If using Supabase, use the connection pooling URL"
+          ]
         }
       }, { status: 500 })
     }
