@@ -7,6 +7,39 @@ export const dynamic = 'force-dynamic'
 // Don't use edge runtime as it doesn't support Prisma
 // export const runtime = 'edge'
 
+// Handler to safely run database operations
+async function runDatabaseCheck() {
+  try {
+    // Try to connect to the database
+    const result = await prisma.$queryRaw`SELECT 1 as check`
+    console.log('Database query succeeded:', result)
+    
+    // Try to get version info for additional validation
+    const versionResult = await prisma.$queryRaw`SELECT version() as version`
+    console.log('Database version check succeeded')
+    
+    // Try to count tables as a more thorough check
+    const { count } = await prisma.$queryRaw`
+      SELECT count(*) as count 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public'
+    ` as { count: BigInt }
+
+    return {
+      connected: true,
+      tables: Number(count),
+      error: null
+    }
+  } catch (dbError) {
+    console.error('Database connection error:', dbError)
+    return {
+      connected: false,
+      tables: 0,
+      error: dbError instanceof Error ? dbError.message : 'Unknown database error'
+    }
+  }
+}
+
 export async function GET() {
   try {
     // Log environment variables (masked)
@@ -54,28 +87,16 @@ export async function GET() {
       }
     }
 
-    // Try to connect to the database
-    try {
-      const result = await prisma.$queryRaw`SELECT 1 as check`
-      console.log('Database query succeeded:', result)
-      
-      // Try to get version info for additional validation
-      const versionResult = await prisma.$queryRaw`SELECT version() as version`
-      console.log('Database version check succeeded')
-      
-      // Try to count tables as a more thorough check
-      const { count } = await prisma.$queryRaw`
-        SELECT count(*) as count 
-        FROM information_schema.tables 
-        WHERE table_schema = 'public'
-      ` as { count: BigInt }
-      
+    // Run database check in a way that's safe for browser environments
+    const dbResult = await runDatabaseCheck()
+    
+    if (dbResult.connected) {
       return NextResponse.json({
         status: 'ok',
         timestamp: new Date().toISOString(),
         database: {
           connected: true,
-          tables: Number(count),
+          tables: dbResult.tables,
           urlValidation: dbUrlValidation,
           format: {
             protocol: dbUrl.split('://')[0] || 'missing',
@@ -90,12 +111,10 @@ export async function GET() {
           hasSupabaseKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
         }
       })
-    } catch (dbError) {
-      console.error('Database connection error:', dbError)
-      
+    } else {
       return NextResponse.json({
         status: 'database_error',
-        error: dbError instanceof Error ? dbError.message : 'Unknown database error',
+        error: dbResult.error,
         timestamp: new Date().toISOString(),
         database: {
           connected: false,

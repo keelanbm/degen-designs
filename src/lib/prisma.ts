@@ -8,6 +8,9 @@ declare global {
 const MAX_RETRIES = 5
 const RETRY_DELAY_MS = 2000
 
+// Check if code is running in a browser environment
+const isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined'
+
 // Helper to ensure database URL is properly formatted
 function validateDatabaseUrl(url: string | undefined): string | undefined {
   if (!url) return undefined;
@@ -91,8 +94,15 @@ function isConnectionError(error: Error): boolean {
   );
 }
 
-// Singleton function for creating Prisma client with retry mechanism
+// Safely create a PrismaClient, handling browser environment
 function createPrismaClient() {
+  // Prevent PrismaClient instantiation in browser environment
+  if (isBrowser) {
+    console.error('Attempted to initialize PrismaClient in browser environment')
+    // Return mock client for browser environment
+    return createMockPrismaClient()
+  }
+  
   // Log database connection attempt
   const dbUrl = validateDatabaseUrl(process.env.DATABASE_URL);
   const isDevMode = process.env.NODE_ENV === 'development'
@@ -103,44 +113,62 @@ function createPrismaClient() {
     dbType: dbUrl?.split('://')[0] || 'unknown'
   })
   
-  const client = new PrismaClient({
-    datasources: {
-      db: {
-        url: dbUrl
+  // Create actual Prisma client for server environment
+  try {
+    const client = new PrismaClient({
+      datasources: {
+        db: {
+          url: dbUrl
+        }
+      },
+      log: isDevMode ? ['query', 'error', 'warn'] : ['error'],
+      errorFormat: 'pretty',
+    })
+
+    // Add middleware for connection error handling
+    client.$use(async (params, next) => {
+      try {
+        return await withRetry(() => next(params));
+      } catch (error) {
+        // Format error for better debugging
+        const enhancedError = error instanceof Error 
+          ? error 
+          : new Error(String(error));
+        
+        console.error('Database operation failed after all retries:', {
+          operation: params.action,
+          model: params.model,
+          error: enhancedError.message
+        });
+        
+        throw enhancedError;
       }
-    },
-    log: isDevMode ? ['query', 'error', 'warn'] : ['error'],
-    errorFormat: 'pretty',
-  })
+    })
 
-  // Add middleware for connection error handling
-  client.$use(async (params, next) => {
-    try {
-      return await withRetry(() => next(params));
-    } catch (error) {
-      // Format error for better debugging
-      const enhancedError = error instanceof Error 
-        ? error 
-        : new Error(String(error));
-      
-      console.error('Database operation failed after all retries:', {
-        operation: params.action,
-        model: params.model,
-        error: enhancedError.message
-      });
-      
-      throw enhancedError;
+    // Test the connection
+    if (isDevMode) {
+      client.$connect()
+        .then(() => console.log('Database connection established'))
+        .catch(err => console.error('Failed to connect to database:', err.message))
     }
-  })
 
-  // Test the connection
-  if (isDevMode) {
-    client.$connect()
-      .then(() => console.log('Database connection established'))
-      .catch(err => console.error('Failed to connect to database:', err.message))
+    return client
+  } catch (error) {
+    console.error('Failed to initialize Prisma client:', error)
+    return createMockPrismaClient()
   }
+}
 
-  return client
+// Create a mock Prisma client for browser or error cases
+function createMockPrismaClient() {
+  const mockHandler = {
+    get: () => async () => {
+      throw new Error('PrismaClient is not available in this environment')
+    }
+  }
+  
+  // Use Proxy to handle any attempted method call
+  return new Proxy({}, mockHandler) as PrismaClient
 }
 
 // Use global variable in development to prevent multiple instances
@@ -157,7 +185,9 @@ export function getPrismaClient() {
 
 // Graceful shutdown
 async function disconnect() {
-  await prisma.$disconnect()
+  if (!isBrowser) {
+    await prisma.$disconnect()
+  }
 }
 
 process.on('beforeExit', disconnect)
