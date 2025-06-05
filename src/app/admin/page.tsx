@@ -6,19 +6,28 @@ import Link from 'next/link'
 // Set this to your admin email
 const ADMIN_EMAIL = 'keelan.miskell@gmail.com'
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic'
+
 export default async function AdminDashboard() {
-  // Use auth() instead of destructuring directly
-  const session = auth()
-  const user = await currentUser()
-  
-  // If not logged in, redirect to home page
-  if (!session.userId) {
-    redirect('/')
-  }
-  
-  // We'll check the user's email on the client side in the layout
-  // This is just a fallback security measure
-  if (user && user.emailAddresses[0]?.emailAddress !== ADMIN_EMAIL) {
+  try {
+    // Use auth() instead of destructuring directly
+    const session = auth()
+    const user = await currentUser()
+    
+    // If not logged in, redirect to home page
+    if (!session?.userId) {
+      redirect('/')
+    }
+    
+    // We'll check the user's email on the client side in the layout
+    // This is just a fallback security measure
+    if (user && user.emailAddresses[0]?.emailAddress !== ADMIN_EMAIL) {
+      redirect('/')
+    }
+  } catch (error) {
+    // If Clerk throws an error (e.g., not configured), redirect to home
+    console.error("Auth error:", error)
     redirect('/')
   }
   

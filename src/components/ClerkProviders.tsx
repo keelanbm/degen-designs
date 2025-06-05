@@ -40,11 +40,12 @@ export default function ClerkProviders({ children }: { children: React.ReactNode
     // Handle missing Clerk keys
     console.warn('Clerk keys are missing. Authentication will not work properly.');
     
-    // Fallback provider that doesn't actually authenticate
+    // Fallback provider with minimal setup
     return (
-      <ToastProvider>
-        {children}
-      </ToastProvider>
+      <>
+        <Navbar />
+        <ToastProvider>{children}</ToastProvider>
+      </>
     );
   }
   
@@ -62,8 +63,7 @@ export default function ClerkProviders({ children }: { children: React.ReactNode
       }}
     >
       <Navbar />
-      {children}
-      <ToastProvider />
+      <ToastProvider>{children}</ToastProvider>
     </ClerkProvider>
   );
 } 

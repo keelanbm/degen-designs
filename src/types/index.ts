@@ -57,3 +57,18 @@ export interface DappWithImages {
     createdAt: Date
     updatedAt: Date
   }
+
+// Custom type declarations
+
+// Add support for the ethereum window object
+interface Window {
+  ethereum?: {
+    isMetaMask?: boolean;
+    request?: (...args: any[]) => Promise<any>;
+    on?: (...args: any[]) => void;
+    removeListener?: (...args: any[]) => void;
+    [key: string]: any;
+  };
+}
+
+// You can add more global type extensions here as needed

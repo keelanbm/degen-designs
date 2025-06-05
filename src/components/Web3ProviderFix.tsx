@@ -2,6 +2,19 @@
 
 import { useEffect } from 'react'
 
+// Define the ethereum window property for TypeScript
+declare global {
+  interface Window {
+    ethereum?: {
+      isMetaMask?: boolean;
+      request?: (...args: any[]) => Promise<any>;
+      on?: (...args: any[]) => void;
+      removeListener?: (...args: any[]) => void;
+      [key: string]: any;
+    };
+  }
+}
+
 // This component disables automatic MetaMask/Ethereum provider initialization 
 // to prevent errors when running without a Web3 provider
 export default function Web3ProviderFix() {
@@ -22,7 +35,7 @@ export default function Web3ProviderFix() {
         on: () => {},
         removeListener: () => {},
         // Add other required properties/methods here
-      } as any
+      }
     }
   }, [])
 
