@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "app/**/*.{js,ts}": {
-      "maxDuration": 30
-    }
-  },
   "buildCommand": "next build",
   "devCommand": "next dev",
   "installCommand": "npm install",
