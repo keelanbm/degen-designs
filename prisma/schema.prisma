@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DappType {
+  DEFI
+  NFT
+  SOCIAL
+  GAMING
+  TOOLS
+  OTHER
+}
+
+enum DappCategory {
+  LENDING
+  EXCHANGE
+  MARKETPLACE
+  WALLET
+  ANALYTICS
+  GOVERNANCE
+  LAUNCHPAD
+  BRIDGE
+  OTHER
+}
+
+enum ImageFlow {
+  ONBOARDING
+  TRADING
+  MINTING
+  PROFILE
+  SETTINGS
+  SWAP
+  SEND
+  RECEIVE
+  OTHER
+}
+
+enum UIElement {
+  TABLE
+  DIALOG
+  CARD
+  FORM
+  CHART
+  MODAL
+  NAVIGATION
+  BUTTON
+  INPUT
+  OTHER
+}
+
+model User {
+  id               String   @id @default(cuid())
+  clerkId          String   @unique
+  email            String   @unique
+  stripeCustomerId String?
+  isPremium        Boolean  @default(false)
+  viewedImages     Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Dapp {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  logoUrl     String?
+  website     String?
+  category    DappCategory?
+  type        DappType?
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  images Image[]
+  flows  Flow[]
+
+  @@map("dapps")
+}
+
+model Image {
+  id          String   @id @default(cuid())
+  url         String
+  title       String?
+  description String?
+  category    DappCategory?
+  version     String?
+  capturedAt  DateTime?
+  isPremium   Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  flow        ImageFlow?
+  uiElement   UIElement?
+  tags        String[]
+
+  dappId String
+  dapp   Dapp   @relation(fields: [dappId], references: [id], onDelete: Cascade)
+  flowSteps FlowStep[]
+
+  @@index([dappId])
+  @@map("images")
+}
+
+model Flow {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  dappId String
+  dapp   Dapp   @relation(fields: [dappId], references: [id], onDelete: Cascade)
+  steps FlowStep[]
+
+  @@index([dappId])
+  @@map("flows")
+}
+ 
+model FlowStep {
+  id    String @id @default(cuid())
+  order Int
+
+  flowId  String
+  flow    Flow   @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  imageId String
+  image   Image  @relation(fields: [imageId], references: [id], onDelete: Cascade)
+
+  @@index([flowId])
+  @@index([imageId])
+  @@unique([flowId, order])
+  @@map("flow_steps")
+}

@@ -1,0 +1,62 @@
+{
+    "uniswap": {
+      "name": "Uniswap",
+      "type": "DEFI",
+      "category": "EXCHANGE",
+      "description": "Leading decentralized exchange protocol for swapping tokens",
+      "website": "https://uniswap.org",
+      "version": "v1-june-2025",
+      "capturedAt": "2025-06-01",
+      "imagesPath": "./public/images/uniswap-may-2025",
+      "imageCategories": {
+        "Buy.png": "EXCHANGE",
+        "Limit.png": "EXCHANGE",
+        "Send.png": "WALLET",
+        "Swap.png": "EXCHANGE"
+      },
+      "imageFlows": {
+        "Buy.png": "ONBOARDING",
+        "Swap.png": "SWAP"
+      },
+      "imageUIElements": {
+        "Buy.png": "FORM",
+        "Swap.png": "CARD"
+      },
+      "imageTags": {
+        "Buy.png": ["buy", "token", "onboarding"],
+        "Swap.png": ["swap", "exchange"]
+      },
+      "isPremium": false
+    },
+    "jupiter": {
+      "name": "Jupiter",
+      "description": "Leading decentralized exchange on Solana",
+      "website": "https://jup.ag",
+      "category": "DEFI",
+      "version": "v1-june-2025",
+      "capturedAt": "2025-06-01",
+      "imagesPath": "./public/images/jupiter-may-2025",
+      "imageCategories": {
+        "Instant Swap.png": "EXCHANGE",
+        "Manual Settings.png": "OTHER",
+        "Recurring Buy.png": "EXCHANGE",
+        "Trigger Order.png": "EXCHANGE"
+      },
+      "isPremium": false
+    },
+    "gmx-v2": {
+      "name": "GMX V2",
+      "description": "The largest Perp DEX on Arbitrum, trade with up to 100x leverage",
+      "website": "https://gmx.io",
+      "category": "DEFI",
+      "version": "v1-june-2025",
+      "capturedAt": "2025-06-01",
+      "imagesPath": "./public/images/gmx-v2-may-2025",
+      "imageCategories": {
+        "Limit Long.png": "EXCHANGE",
+        "Market Long.png": "EXCHANGE",
+        "Swap.png": "EXCHANGE"
+      },
+      "isPremium": false
+    }
+  }
