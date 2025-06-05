@@ -9,7 +9,10 @@ export default authMiddleware({
     "/", 
     "/:slug",
     "/api/health(.*)",
-    "/api/webhooks(.*)"
+    "/api/webhooks(.*)",
+    "/api/debug-public(.*)",
+    "/explore",
+    "/popular"
   ],
   
   // Remove admin routes from ignoredRoutes since we need auth() to work there

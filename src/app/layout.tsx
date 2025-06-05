@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import ClerkProviders from '@/components/ClerkProviders'
+import Web3ProviderFix from '@/components/Web3ProviderFix'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -34,6 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className} suppressHydrationWarning={true}>
+        <Web3ProviderFix />
         <ClerkProviders>
           <main className="min-h-screen bg-background">
             {children}

@@ -5,8 +5,8 @@ declare global {
 }
 
 // Connection retry settings
-const MAX_RETRIES = 3
-const RETRY_DELAY_MS = 1000
+const MAX_RETRIES = 5
+const RETRY_DELAY_MS = 2000
 
 // Helper to ensure database URL is properly formatted
 function validateDatabaseUrl(url: string | undefined): string | undefined {
@@ -40,6 +40,57 @@ function validateDatabaseUrl(url: string | undefined): string | undefined {
   }
 }
 
+// Advanced retry function with backoff
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  options = { maxRetries: MAX_RETRIES, delayMs: RETRY_DELAY_MS }
+): Promise<T> {
+  let lastError: Error | undefined;
+  
+  for (let attempt = 1; attempt <= options.maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      
+      // Only retry on connection-related errors
+      if (!isConnectionError(lastError)) {
+        throw error;
+      }
+      
+      console.warn(
+        `Database operation failed (attempt ${attempt}/${options.maxRetries}):`,
+        lastError.name,
+        lastError.message?.substring(0, 150)
+      );
+      
+      if (attempt < options.maxRetries) {
+        // Exponential backoff
+        const delay = options.delayMs * Math.pow(1.5, attempt - 1);
+        console.log(`Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  
+  throw lastError || new Error('Failed after maximum retry attempts');
+}
+
+// Helper to identify connection errors
+function isConnectionError(error: Error): boolean {
+  return (
+    error.message.includes('connection') ||
+    error.message.includes('timeout') ||
+    error.message.includes('ECONNREFUSED') ||
+    error.message.includes('Connection terminated') ||
+    error.message.includes('peer') ||
+    error.message.toLowerCase().includes('network') ||
+    error.message.toLowerCase().includes('socket') ||
+    error.name === 'PrismaClientInitializationError' ||
+    error.name === 'PrismaClientRustPanicError'
+  );
+}
+
 // Singleton function for creating Prisma client with retry mechanism
 function createPrismaClient() {
   // Log database connection attempt
@@ -64,32 +115,21 @@ function createPrismaClient() {
 
   // Add middleware for connection error handling
   client.$use(async (params, next) => {
-    let retries = 0
-    
-    while (retries < MAX_RETRIES) {
-      try {
-        return await next(params)
-      } catch (error) {
-        // Only retry on connection errors
-        if (error instanceof Error && 
-           (error.message.includes('connection') || 
-            error.message.includes('timeout') ||
-            error.name === 'PrismaClientInitializationError')) {
-          
-          retries++
-          console.warn(`Database operation failed (attempt ${retries}/${MAX_RETRIES}):`, 
-            error.name, error.message?.substring(0, 150))
-          
-          if (retries < MAX_RETRIES) {
-            // Wait before retrying
-            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS * retries))
-            continue
-          }
-        }
-        
-        // Not a connection error or max retries reached
-        throw error
-      }
+    try {
+      return await withRetry(() => next(params));
+    } catch (error) {
+      // Format error for better debugging
+      const enhancedError = error instanceof Error 
+        ? error 
+        : new Error(String(error));
+      
+      console.error('Database operation failed after all retries:', {
+        operation: params.action,
+        model: params.model,
+        error: enhancedError.message
+      });
+      
+      throw enhancedError;
     }
   })
 
